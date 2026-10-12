@@ -1,0 +1,776 @@
+<!-- NomeDoApp = "Glasgow Pediátrico" -->
+<!-- AndroidVersionCode = 262561308; Timestamp = 2026-09-13T13:08:00-03:00 -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a3a6b">
+  <meta name="format-detection" content="telephone=no">
+  <title>Escala de Glasgow Pediátrica — Lactentes</title>
+  <style>
+    :root{
+      --surface: #ffffff;
+      --border: #cddbea;
+      --radius-xl: 22px;
+
+      --bg:#e8f0fe;
+      --card:#ffffff;
+      --line:#cbd5e1;
+      --text:#1e293b;
+      --muted:#475569;
+      --blue:#1a3a6b;
+      --blue-soft:#dbeafe;
+      --green:#166534;
+      --green-soft:#dcfce7;
+      --yellow:#854d0e;
+      --yellow-soft:#fef9c3;
+      --red:#991b1b;
+      --red-soft:#fee2e2;
+      --gray-soft:#f1f5f9;
+      --shadow:0 2px 10px rgba(0,0,0,.07);
+      --radius:14px;
+    }
+
+    *{box-sizing:border-box}
+    html{-webkit-text-size-adjust:100%}
+    body{
+      margin:0;
+      min-height:100vh;
+      padding:24px 16px 48px;
+      font-family:Arial,Helvetica,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.45;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    .page{
+      max-width:980px;
+      margin:0 auto;
+      display:grid;
+      gap:20px;
+    }
+
+    header{
+      text-align:center;
+      margin-bottom:4px;
+    }
+
+    header h1{
+      margin:0;
+      color:var(--blue);
+      font-size:1.75rem;
+    }
+
+    header p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .section{
+      background:var(--card);
+      border:1.5px solid var(--line);
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+
+    .section-header{
+      background:var(--blue);
+      color:#fff;
+      padding:12px 18px;
+      font-size:.88rem;
+      font-weight:700;
+      letter-spacing:.7px;
+      text-transform:uppercase;
+    }
+
+    .section-body{
+      padding:18px;
+    }
+
+    .help{
+      font-size:.92rem;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+    }
+
+    @media (max-width:860px){
+      .grid-3{grid-template-columns:1fr}
+    }
+
+    .card{
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+    }
+
+    .card h2{
+      margin:0;
+      padding:12px 14px;
+      font-size:1rem;
+      color:var(--blue);
+      background:var(--blue-soft);
+      border-bottom:1px solid #bfdbfe;
+    }
+
+    .options{
+      display:grid;
+      gap:10px;
+      padding:14px;
+    }
+
+    .option{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      padding:12px 14px;
+      border:1.5px solid #94a3b8;
+      border-radius:10px;
+      background:#fff;
+      cursor:pointer;
+      transition:border-color .15s, box-shadow .15s, background .15s;
+    }
+
+    .option:hover{
+      border-color:#2563a8;
+      box-shadow:0 0 0 3px rgba(37,99,168,.08);
+      background:#f8fbff;
+    }
+
+    .option.selected{
+      border-color:#2563a8;
+      background:var(--blue-soft);
+      box-shadow:0 0 0 3px rgba(37,99,168,.12);
+    }
+
+    .option input{
+      margin-top:3px;
+      accent-color:#2563a8;
+      cursor:pointer;
+      flex:0 0 auto;
+    }
+
+    .option strong{
+      display:block;
+      color:#0f172a;
+      font-size:.98rem;
+    }
+
+    .option span{
+      display:block;
+      margin-top:4px;
+      color:#334155;
+      font-size:.9rem;
+      font-weight:600;
+      line-height:1.4;
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .btn{
+      border:none;
+      border-radius:10px;
+      padding:10px 18px;
+      font-size:.9rem;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .btn-primary{background:var(--blue); color:#fff;}
+    .btn-primary:hover{background:#2563a8;}
+    .btn-secondary{background:#eef2f6; color:#334155;}
+    .btn-secondary:hover{background:#e2e8f0;}
+
+    .note{
+      margin-top:12px;
+      font-size:.84rem;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .result-grid{
+      display:grid;
+      grid-template-columns:220px 1fr;
+      gap:16px;
+      align-items:stretch;
+    }
+
+    @media (max-width:700px){
+      .result-grid{grid-template-columns:1fr}
+    }
+
+    .score-box{
+      min-height:160px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      text-align:center;
+      padding:18px;
+      border:1.5px solid #93c5fd;
+      border-radius:12px;
+      background:var(--blue-soft);
+    }
+
+    .score-box .label{
+      color:var(--blue);
+      font-size:.84rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.7px;
+    }
+
+    .score-box .value{
+      margin:8px 0 4px;
+      color:var(--blue);
+      font-family:Consolas,Monaco,monospace;
+      font-size:3rem;
+      font-weight:700;
+      line-height:1.1;
+    }
+
+    .score-box .range{
+      color:var(--muted);
+      font-size:.92rem;
+      font-weight:600;
+    }
+
+    .interpretation{
+      display:grid;
+      gap:12px;
+      padding:16px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+    }
+
+    .pill{
+      width:fit-content;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:.86rem;
+      font-weight:700;
+    }
+
+    .pill-pending{background:var(--gray-soft); color:var(--muted);}
+    .pill-nt{background:#eef2f6; color:#475569;}
+    .pill-severe{background:var(--red-soft); color:var(--red);}
+    .pill-moderate{background:var(--yellow-soft); color:var(--yellow);}
+    .pill-mild{background:var(--green-soft); color:var(--green);}
+
+    .detail-list{
+      display:grid;
+      gap:8px;
+      font-size:.9rem;
+    }
+
+    .detail-item{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      padding-bottom:8px;
+      border-bottom:1px dashed var(--line);
+    }
+
+    .detail-item:last-child{
+      padding-bottom:0;
+      border-bottom:none;
+    }
+
+    .detail-item strong{color:var(--blue)}
+  
+    .legal-disclaimer{
+      margin-top:16px;
+      padding:0;
+      border:1px solid #e2e8f0;
+      border-radius:14px;
+      background:#f8fafc;
+      box-shadow:none;
+      color:#64748b;
+      font-size:.76rem;
+      line-height:1.45;
+      text-align:left;
+      overflow:hidden;
+    }
+    .legal-disclaimer > summary{
+      list-style:none;
+      cursor:pointer;
+      position:relative;
+      padding:11px 38px 11px 13px;
+      color:#5c6f87;
+      font-size:.78rem;
+      font-weight:700;
+      user-select:none;
+    }
+    .legal-disclaimer > summary::-webkit-details-marker{display:none}
+    .legal-disclaimer > summary::after{
+      content:'＋';
+      position:absolute;
+      right:13px;
+      top:50%;
+      transform:translateY(-50%);
+      color:#7b8da0;
+      font-size:.9rem;
+      font-weight:800;
+    }
+    .legal-disclaimer[open] > summary::after{content:'−'}
+    .legal-disclaimer-content{
+      padding:0 13px 12px;
+      border-top:1px solid #edf2f7;
+      padding-top:11px;
+      text-align:justify;
+      overflow-wrap:anywhere;
+    }
+
+    .signature-block {
+      text-align: center;
+      color: #5c6f87;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+
+    .spacer-3lines {
+      height: 4.2em;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Escala de Glasgow Pediátrica</h1>
+      <p>Versão adaptada para lactentes e crianças pré-verbais.</p>
+    </header>
+
+    <section class="section">
+      <div class="section-header">① Seleção dos componentes</div>
+      <div class="section-body">
+        <form id="glasgowForm" novalidate>
+          <div class="grid-3" id="componentGrid"></div>
+
+          <div class="actions">
+            <button type="button" class="btn btn-primary" id="btnCalcular">Calcular Glasgow</button>
+            <button type="reset" class="btn btn-secondary">Limpar</button>
+          </div>
+
+          <p class="note">
+            Use <strong>NT</strong> quando um componente não puder ser testado. Nessa situação, o total não deve ser interpretado.
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="resultadoSection">
+      <div class="section-header">② Resultado</div>
+      <div class="section-body">
+        <div class="result-grid">
+          <div class="score-box">
+            <div class="label">Glasgow total</div>
+            <div class="value" id="scoreTotal">—</div>
+            <div class="range" id="scoreRange">Selecione os três componentes</div>
+          </div>
+
+          <div class="interpretation">
+            <div id="classificationPill" class="pill pill-pending">Aguardando seleção completa</div>
+
+            <div class="detail-list">
+              <div class="detail-item"><strong>Abertura ocular</strong><span id="detailOcular">—</span></div>
+              <div class="detail-item"><strong>Resposta verbal</strong><span id="detailVerbal">—</span></div>
+              <div class="detail-item"><strong>Resposta motora</strong><span id="detailMotora">—</span></div>
+              <div class="detail-item"><strong>Total</strong><span id="detailTotal">—</span></div>
+            </div>
+
+            <p class="note" id="interpretationNote">
+              Esta calculadora organiza a pontuação da escala. A interpretação clínica do nível de consciência deve sempre considerar o contexto, sedação, via aérea, ventilação, estado hemodinâmico e exame neurológico completo.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">③ Informação adicional</div>
+      <div class="section-body">
+        <p class="help">
+          A escala soma três componentes: abertura ocular (1–4), resposta verbal (1–5) e resposta motora (1–6), totalizando de 3 a 15 quando todos os itens são testáveis.
+          Em pediatria, costuma-se estratificar o total em <strong>grave (3–8)</strong>, <strong>moderado (9–12)</strong> e <strong>leve (13–15)</strong>, sempre com correlação clínica.
+        </p>
+        <p class="note">
+          Em lactentes e pré-verbais, os descritores verbais e motores são adaptados. O total não deve ser usado isoladamente para definir prognóstico ou substituir exame neurológico seriado.
+        </p>
+      </div>
+    </section>
+    <details class="legal-disclaimer legal-disclaimer-collapsible">
+      <summary>Aviso Legal e Isenção de Responsabilidade</summary>
+      <div class="legal-disclaimer-content">
+        Este software e todas as informações nele contidas são fornecidos exclusivamente com propósitos educacionais e de auxílio à referência médica. ESTE SISTEMA NÃO SUBSTITUI O JULGAMENTO CLÍNICO INDIVIDUAL, A ANAMNESE E O EXAME FÍSICO. As informações aqui apresentadas não devem ser utilizadas isoladamente para o diagnóstico, conduta ou tratamento de pacientes. A responsabilidade final por qualquer decisão clínica, prescrição ou intervenção é exclusiva do profissional de saúde assistente, devidamente habilitado. Os desenvolvedores não garantem a precisão absoluta de todos os dados e isentam-se de responsabilidade por quaisquer danos diretos, indiretos, materiais ou morais que resultem do uso inadequado, interpretação equivocada ou confiança exclusiva nas informações deste sistema. Pacientes e indivíduos leigos que utilizarem este software devem sempre buscar a orientação de um médico qualificado antes de tomar qualquer decisão sobre sua saúde.
+      </div>
+    </details>
+
+    <div class="signature-block"><strong>Desenvolvido por Adão L. L. Couto</strong><br><span class="version-name">1.10.09.13</span></div>
+
+    <div class="spacer-3lines" aria-hidden="true"></div>
+
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // constants
+      const COMPONENTS = [
+        {
+          key: 'ocular',
+          title: 'Abertura ocular',
+          options: [
+            { value: 4, label: '4 pontos', description: 'Espontânea' },
+            { value: 3, label: '3 pontos', description: 'Ao estímulo verbal ou sonoro' },
+            { value: 2, label: '2 pontos', description: 'Ao estímulo doloroso' },
+            { value: 1, label: '1 ponto', description: 'Ausente' },
+            { value: 'NT', label: 'NT', description: 'Não testável' }
+          ]
+        },
+        {
+          key: 'verbal',
+          title: 'Resposta verbal',
+          options: [
+            { value: 5, label: '5 pontos', description: 'Arrulha, balbucia ou interage apropriadamente' },
+            { value: 4, label: '4 pontos', description: 'Choro irritado, mas consolável' },
+            { value: 3, label: '3 pontos', description: 'Chora ao estímulo doloroso' },
+            { value: 2, label: '2 pontos', description: 'Gemidos ou sons ao estímulo doloroso' },
+            { value: 1, label: '1 ponto', description: 'Sem resposta verbal' },
+            { value: 'NT', label: 'NT', description: 'Não testável' }
+          ]
+        },
+        {
+          key: 'motora',
+          title: 'Resposta motora',
+          options: [
+            { value: 6, label: '6 pontos', description: 'Movimentos espontâneos e adequados à idade' },
+            { value: 5, label: '5 pontos', description: 'Localiza dor ou toque desconfortável' },
+            { value: 4, label: '4 pontos', description: 'Retirada ao estímulo doloroso' },
+            { value: 3, label: '3 pontos', description: 'Flexão anormal / decorticação' },
+            { value: 2, label: '2 pontos', description: 'Extensão / descerebração' },
+            { value: 1, label: '1 ponto', description: 'Ausência de resposta motora / hipotonia flácida' },
+            { value: 'NT', label: 'NT', description: 'Não testável' }
+          ]
+        }
+      ];
+
+      const TEXT = {
+        pending: {
+          score: '—',
+          range: 'Selecione os três componentes',
+          pill: 'Aguardando seleção completa',
+          pillClass: 'pill-pending',
+          note: 'Esta calculadora organiza a pontuação da escala. A interpretação clínica do nível de consciência deve sempre considerar o contexto, sedação, via aérea, ventilação, estado hemodinâmico e exame neurológico completo.'
+        },
+        nt: {
+          score: 'NT',
+          range: 'Total não interpretável',
+          pill: 'Componente não testável (NT)',
+          pillClass: 'pill-nt',
+          note: 'Há pelo menos um componente não testável. Documente os componentes individualmente e não interprete o total da escala.'
+        },
+        severe: {
+          range: 'Glasgow de 3 a 8',
+          pill: 'Comprometimento grave',
+          pillClass: 'pill-severe',
+          note: 'Pontuação baixa sugere rebaixamento importante do nível de consciência. Correlacione imediatamente com exame clínico, necessidade de proteção de via aérea e contexto neurológico.'
+        },
+        moderate: {
+          range: 'Glasgow de 9 a 12',
+          pill: 'Comprometimento moderado',
+          pillClass: 'pill-moderate',
+          note: 'Pontuação intermediária sugere comprometimento moderado do nível de consciência. Reavalie tendência evolutiva e contexto clínico.'
+        },
+        mild: {
+          range: 'Glasgow de 13 a 15',
+          pill: 'Comprometimento leve ou ausente',
+          pillClass: 'pill-mild',
+          note: 'Pontuação alta sugere maior preservação do nível de consciência, mas não exclui lesões relevantes. Interprete junto ao exame neurológico e ao quadro clínico.'
+        }
+      };
+
+      // dom refs
+      const DOM = {
+        form: document.getElementById('glasgowForm'),
+        grid: document.getElementById('componentGrid'),
+        calculateButton: document.getElementById('btnCalcular'),
+        resultSection: document.getElementById('resultadoSection'),
+        scoreTotal: document.getElementById('scoreTotal'),
+        scoreRange: document.getElementById('scoreRange'),
+        classificationPill: document.getElementById('classificationPill'),
+        detailOcular: document.getElementById('detailOcular'),
+        detailVerbal: document.getElementById('detailVerbal'),
+        detailMotora: document.getElementById('detailMotora'),
+        detailTotal: document.getElementById('detailTotal'),
+        interpretationNote: document.getElementById('interpretationNote')
+      };
+
+      // ui renderers
+      function createOptionMarkup(componentKey, option) {
+        const optionId = `${componentKey}_${String(option.value)}`;
+        return `
+          <label class="option">
+            <input id="${optionId}" type="radio" name="${componentKey}" value="${option.value}">
+            <div>
+              <strong>${option.label}</strong>
+              <span>${option.description}</span>
+            </div>
+          </label>
+        `;
+      }
+
+      function createComponentMarkup(component) {
+        return `
+          <section class="card">
+            <h2>${component.title}</h2>
+            <div class="options">
+              ${component.options.map((option) => createOptionMarkup(component.key, option)).join('')}
+            </div>
+          </section>
+        `;
+      }
+
+      function buildInterface() {
+        DOM.grid.innerHTML = COMPONENTS.map(createComponentMarkup).join('');
+      }
+
+      // parsers / selectors
+      function getSelectedRawValue(componentKey) {
+        const checked = DOM.form.querySelector(`input[name="${componentKey}"]:checked`);
+        return checked ? checked.value : null;
+      }
+
+      // validators / lookup
+      function findOption(componentKey, rawValue) {
+        const component = COMPONENTS.find((item) => item.key === componentKey);
+        return component ? component.options.find((option) => String(option.value) === String(rawValue)) || null : null;
+      }
+
+      function getComponentSelection(componentKey) {
+        const rawValue = getSelectedRawValue(componentKey);
+
+        if (rawValue === null) {
+          return { value: null, isNT: false, detail: '—' };
+        }
+
+        if (rawValue === 'NT') {
+          return { value: null, isNT: true, detail: 'NT — Não testável' };
+        }
+
+        const option = findOption(componentKey, rawValue);
+        const numericValue = Number(rawValue);
+
+        return {
+          value: Number.isFinite(numericValue) ? numericValue : null,
+          isNT: false,
+          detail: option ? `${numericValue} — ${option.description}` : '—'
+        };
+      }
+
+      // calculators
+      function classifyTotal(total, hasNT, isComplete) {
+        if (hasNT) {
+          return { score: TEXT.nt.score, range: TEXT.nt.range, pill: TEXT.nt.pill, pillClass: TEXT.nt.pillClass, note: TEXT.nt.note };
+        }
+
+        if (!isComplete || total === null) {
+          return { score: TEXT.pending.score, range: TEXT.pending.range, pill: TEXT.pending.pill, pillClass: TEXT.pending.pillClass, note: TEXT.pending.note };
+        }
+
+        if (total <= 8) {
+          return { score: String(total), range: TEXT.severe.range, pill: TEXT.severe.pill, pillClass: TEXT.severe.pillClass, note: TEXT.severe.note };
+        }
+
+        if (total <= 12) {
+          return { score: String(total), range: TEXT.moderate.range, pill: TEXT.moderate.pill, pillClass: TEXT.moderate.pillClass, note: TEXT.moderate.note };
+        }
+
+        return { score: String(total), range: TEXT.mild.range, pill: TEXT.mild.pill, pillClass: TEXT.mild.pillClass, note: TEXT.mild.note };
+      }
+
+      function calculateAssessment(selection) {
+        const ocular = selection.ocular;
+        const verbal = selection.verbal;
+        const motora = selection.motora;
+
+        const hasNT = ocular.isNT || verbal.isNT || motora.isNT;
+        const isComplete = [ocular, verbal, motora].every((component) => component.value !== null);
+        const total = (!hasNT && isComplete) ? (ocular.value + verbal.value + motora.value) : null;
+        const classification = classifyTotal(total, hasNT, isComplete);
+
+        return {
+          ocular,
+          verbal,
+          motora,
+          hasNT,
+          isComplete,
+          total,
+          classification
+        };
+      }
+
+      function getCurrentSelection() {
+        return {
+          ocular: getComponentSelection('ocular'),
+          verbal: getComponentSelection('verbal'),
+          motora: getComponentSelection('motora')
+        };
+      }
+
+      function hasCompleteSelection() {
+        return COMPONENTS.every((component) => {
+          return DOM.form.querySelector(`input[name="${component.key}"]:checked`);
+        });
+      }
+
+      // event helpers
+      function scrollToResultSection() {
+        if (!DOM.resultSection) return;
+        DOM.resultSection.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+
+      function updateSelectedClasses() {
+        DOM.form.querySelectorAll('.option').forEach((option) => option.classList.remove('selected'));
+        DOM.form.querySelectorAll('input[type="radio"]:checked').forEach((input) => {
+          const option = input.closest('.option');
+          if (option) option.classList.add('selected');
+        });
+      }
+
+      // ui binders
+      function renderAssessment(assessment) {
+        DOM.detailOcular.textContent = assessment.ocular.detail;
+        DOM.detailVerbal.textContent = assessment.verbal.detail;
+        DOM.detailMotora.textContent = assessment.motora.detail;
+        DOM.detailTotal.textContent = assessment.hasNT ? 'NT' : (assessment.total === null ? '—' : String(assessment.total));
+
+        DOM.scoreTotal.textContent = assessment.classification.score;
+        DOM.scoreRange.textContent = assessment.classification.range;
+        DOM.classificationPill.className = `pill ${assessment.classification.pillClass}`;
+        DOM.classificationPill.textContent = assessment.classification.pill;
+        DOM.interpretationNote.textContent = assessment.classification.note;
+
+        updateSelectedClasses();
+      }
+
+      function render() {
+        const assessment = calculateAssessment(getCurrentSelection());
+        const isNowComplete = hasCompleteSelection();
+
+        renderAssessment(assessment);
+
+        if (isNowComplete) {
+          window.setTimeout(scrollToResultSection, 120);
+        }
+      }
+
+      // self-tests
+      function runSelfTests() {
+        function makeSelection(ocular, verbal, motora) {
+          return {
+            ocular: getComponentSelectionMock('ocular', ocular),
+            verbal: getComponentSelectionMock('verbal', verbal),
+            motora: getComponentSelectionMock('motora', motora)
+          };
+        }
+
+        function getComponentSelectionMock(componentKey, rawValue) {
+          if (rawValue === null) return { value: null, isNT: false, detail: '—' };
+          if (rawValue === 'NT') return { value: null, isNT: true, detail: 'NT — Não testável' };
+          const option = findOption(componentKey, rawValue);
+          return { value: Number(rawValue), isNT: false, detail: option ? `${rawValue} — ${option.description}` : '—' };
+        }
+
+        const tests = [
+          { name: 'Incompleto fica pendente', input: makeSelection(4, null, 6), expect: { total: null, pill: TEXT.pending.pill } },
+          { name: 'NT torna total não interpretável', input: makeSelection(4, 'NT', 6), expect: { total: null, pill: TEXT.nt.pill } },
+          { name: 'Limite grave em 8', input: makeSelection(2, 1, 5), expect: { total: 8, pill: TEXT.severe.pill } },
+          { name: 'Limite moderado em 9', input: makeSelection(3, 1, 5), expect: { total: 9, pill: TEXT.moderate.pill } },
+          { name: 'Limite moderado em 12', input: makeSelection(4, 3, 5), expect: { total: 12, pill: TEXT.moderate.pill } },
+          { name: 'Limite leve em 13', input: makeSelection(4, 3, 6), expect: { total: 13, pill: TEXT.mild.pill } },
+          { name: 'Escore máximo 15', input: makeSelection(4, 5, 6), expect: { total: 15, pill: TEXT.mild.pill } },
+          { name: 'Escore mínimo 3', input: makeSelection(1, 1, 1), expect: { total: 3, pill: TEXT.severe.pill } },
+          { name: 'Moderado intermediário', input: makeSelection(3, 4, 3), expect: { total: 10, pill: TEXT.moderate.pill } },
+          { name: 'Descritor ocular 4', input: makeSelection(4, 5, 6), expectDetail: { component: 'ocular', text: '4 — Espontânea' } },
+          { name: 'Descritor verbal 2', input: makeSelection(4, 2, 6), expectDetail: { component: 'verbal', text: '2 — Gemidos ou sons ao estímulo doloroso' } },
+          { name: 'Descritor motora 3', input: makeSelection(4, 5, 3), expectDetail: { component: 'motora', text: '3 — Flexão anormal / decorticação' } }
+        ];
+
+        const results = tests.map((test) => {
+          const result = calculateAssessment(test.input);
+          let passed = true;
+
+          if (test.expect) {
+            if (result.total !== test.expect.total || result.classification.pill !== test.expect.pill) {
+              passed = false;
+            }
+          }
+
+          if (test.expectDetail) {
+            if (result[test.expectDetail.component].detail !== test.expectDetail.text) {
+              passed = false;
+            }
+          }
+
+          return { name: test.name, passed };
+        });
+
+        return {
+          passed: results.every((item) => item.passed),
+          total: results.length,
+          passedCount: results.filter((item) => item.passed).length,
+          results
+        };
+      }
+
+      // bootstrap
+      buildInterface();
+
+      DOM.calculateButton.addEventListener('click', render);
+      DOM.form.addEventListener('change', render);
+      DOM.form.addEventListener('reset', () => window.setTimeout(render, 0));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && event.target && event.target.form === DOM.form) {
+          event.preventDefault();
+          render();
+        }
+      });
+
+      window.GlasgowPedsCore = Object.freeze({
+        calculateAssessment,
+        classifyTotal,
+        runSelfTests
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
