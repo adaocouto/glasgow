@@ -1,5 +1,8 @@
 <!-- NomeDoApp = "Glasgow Pediátrico" -->
-<!-- AndroidVersionCode = 262561308; Timestamp = 2026-09-13T13:08:00-03:00 -->
+<!-- AndroidVersionName = "1.11.10.13" -->
+<!-- VersionName = "1.11.10.13" -->
+<!-- VersionCode = "262840821" -->
+<!-- AndroidVersionCode = 262840821; Timestamp = 2026-09-13T13:08:00-03:00 -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -428,7 +431,7 @@
       </div>
     </details>
 
-    <div class="signature-block"><strong>Desenvolvido por Adão L. L. Couto</strong><br><span class="version-name">1.10.09.13</span></div>
+    <div class="signature-block"><strong>Desenvolvido por Adão L. L. Couto</strong><br><span class="version-name">1.11.10.13</span></div>
 
     <div class="spacer-3lines" aria-hidden="true"></div>
 
@@ -529,6 +532,10 @@
         interpretationNote: document.getElementById('interpretationNote')
       };
 
+      let navigationTimer = null;
+      let showMissingSelections = false;
+      const previousSelections = Object.fromEntries(COMPONENTS.map((component) => [component.key, null]));
+
       // ui renderers
       function createOptionMarkup(componentKey, option) {
         const optionId = `${componentKey}_${String(option.value)}`;
@@ -546,7 +553,7 @@
       function createComponentMarkup(component) {
         return `
           <section class="card">
-            <h2>${component.title}</h2>
+            <h2 id="component_${component.key}" tabindex="-1">${component.title}</h2>
             <div class="options">
               ${component.options.map((option) => createOptionMarkup(component.key, option)).join('')}
             </div>
@@ -648,12 +655,31 @@
       }
 
       // event helpers
-      function scrollToResultSection() {
-        if (!DOM.resultSection) return;
-        DOM.resultSection.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
+      function queueNavigation(target) {
+        window.clearTimeout(navigationTimer);
+        if (!target) return;
+        navigationTimer = window.setTimeout(() => {
+          target.focus({ preventScroll: true });
+          target.scrollIntoView({
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+            block: 'start'
+          });
+          navigationTimer = null;
+        }, 120);
+      }
+
+      function navigateToComponent(componentKey) {
+        queueNavigation(document.getElementById(`component_${componentKey}`));
+      }
+
+      function getMissingComponents() {
+        return COMPONENTS.filter((component) => getSelectedRawValue(component.key) === null);
+      }
+
+      function formatComponentList(components) {
+        const titles = components.map((component) => component.title);
+        if (titles.length < 2) return titles[0] || '';
+        return `${titles.slice(0, -1).join(', ')} e ${titles[titles.length - 1]}`;
       }
 
       function updateSelectedClasses() {
@@ -680,15 +706,79 @@
         updateSelectedClasses();
       }
 
-      function render() {
-        const assessment = calculateAssessment(getCurrentSelection());
+      function render({ validate = showMissingSelections } = {}) {
+        const selection = getCurrentSelection();
         const isNowComplete = hasCompleteSelection();
-
-        renderAssessment(assessment);
+        showMissingSelections = validate && !isNowComplete;
 
         if (isNowComplete) {
-          window.setTimeout(scrollToResultSection, 120);
+          renderAssessment(calculateAssessment(selection));
+        } else {
+          renderAssessment({
+            ...selection,
+            hasNT: false,
+            total: null,
+            classification: {
+              score: TEXT.pending.score,
+              range: TEXT.pending.range,
+              pill: TEXT.pending.pill,
+              pillClass: TEXT.pending.pillClass,
+              note: TEXT.pending.note
+            }
+          });
+
+          if (showMissingSelections) {
+            const missingList = formatComponentList(getMissingComponents());
+            DOM.scoreRange.textContent = `Seleção pendente: ${missingList}`;
+            DOM.classificationPill.textContent = 'Seleção incompleta';
+            DOM.interpretationNote.textContent = `Avalie e marque: ${missingList}. Use NT somente quando o componente não puder ser testado.`;
+          }
         }
+
+        return isNowComplete;
+      }
+
+      function handleCalculate() {
+        if (render({ validate: true })) {
+          queueNavigation(DOM.resultSection);
+        } else {
+          navigateToComponent(getMissingComponents()[0].key);
+        }
+      }
+
+      function handleSelectionChange(event) {
+        const input = event.target;
+        const componentIndex = COMPONENTS.findIndex((component) => component.key === input.name);
+        if (input.type !== 'radio' || componentIndex === -1) return;
+
+        COMPONENTS.forEach((component) => {
+          previousSelections[component.key] = getSelectedRawValue(component.key);
+        });
+        const isNowComplete = render();
+        const nextComponent = COMPONENTS[componentIndex + 1];
+
+        if (nextComponent) {
+          navigateToComponent(nextComponent.key);
+        } else if (isNowComplete) {
+          queueNavigation(DOM.resultSection);
+        } else {
+          handleCalculate();
+        }
+      }
+
+      function handleRadioClick(event) {
+        const input = event.target;
+        if (input.type === 'radio' && input.checked && previousSelections[input.name] === input.value) {
+          handleSelectionChange(event);
+        }
+      }
+
+      function handleReset() {
+        window.clearTimeout(navigationTimer);
+        navigationTimer = null;
+        showMissingSelections = false;
+        COMPONENTS.forEach((component) => { previousSelections[component.key] = null; });
+        window.setTimeout(() => render({ validate: false }), 0);
       }
 
       // self-tests
@@ -752,14 +842,18 @@
 
       // bootstrap
       buildInterface();
+      DOM.resultSection.setAttribute('tabindex', '-1');
+      DOM.classificationPill.setAttribute('aria-live', 'polite');
+      DOM.interpretationNote.setAttribute('aria-live', 'polite');
 
-      DOM.calculateButton.addEventListener('click', render);
-      DOM.form.addEventListener('change', render);
-      DOM.form.addEventListener('reset', () => window.setTimeout(render, 0));
+      DOM.calculateButton.addEventListener('click', handleCalculate);
+      DOM.form.addEventListener('change', handleSelectionChange);
+      DOM.form.addEventListener('click', handleRadioClick);
+      DOM.form.addEventListener('reset', handleReset);
       document.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' && event.target && event.target.form === DOM.form) {
+        if (event.key === 'Enter' && event.target && event.target.form === DOM.form && event.target.type !== 'reset') {
           event.preventDefault();
-          render();
+          handleCalculate();
         }
       });
 
