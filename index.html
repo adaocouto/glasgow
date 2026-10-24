@@ -1,8 +1,8 @@
 <!-- NomeDoApp = "Glasgow Pediátrico" -->
-<!-- AndroidVersionName = "1.012.10.16" -->
-<!-- VersionName = "1.012.10.16" -->
-<!-- VersionCode = "262891619" -->
-<!-- AndroidVersionCode = 262891619; Timestamp = 2026-10-16T16:19:17.527226-03:00 -->
+<!-- AndroidVersionName = "1.012.10.20" -->
+<!-- VersionName = "1.012.10.20" -->
+<!-- VersionCode = "262931448" -->
+<!-- AndroidVersionCode = 262931448; Timestamp = 2026-10-20T14:48:39-03:00 -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -431,7 +431,7 @@
       </div>
     </details>
 
-    <div class="signature-block"><strong>Desenvolvido por Adão L. L. Couto</strong><br><span class="version-name">1.012.10.16</span></div>
+    <div class="signature-block"><strong>Desenvolvido por Adão L. L. Couto</strong><br><span class="version-name">1.012.10.20</span></div>
 
     <div class="spacer-3lines" aria-hidden="true"></div>
 
@@ -840,6 +840,43 @@
         };
       }
 
+      // Minimal persistent input state. Store only the three selected component values,
+      // the visible scroll position and whether the legal details are expanded.
+      // The clinical scoring and classification engine is unchanged.
+      const APP_STATE_SCHEMA_VERSION = 1;
+      const APP_STATE_STORAGE_KEY = 'glasgow_pediatrico_inputs_v1';
+      const LEGAL_DETAILS = document.querySelector('.legal-disclaimer');
+      function captureInputSnapshot() {
+        const selections = {};
+        COMPONENTS.forEach((component) => { selections[component.key] = getSelectedRawValue(component.key); });
+        return { schema: APP_STATE_SCHEMA_VERSION, selections, scrollY: Math.max(0, window.scrollY || 0), legalOpen: !!LEGAL_DETAILS?.open };
+      }
+      function persistInputSnapshot() {
+        try { localStorage.setItem(APP_STATE_STORAGE_KEY, JSON.stringify(captureInputSnapshot())); }
+        catch (error) { console.warn('Persistência indisponível', error); }
+      }
+      function restoreInputSnapshot() {
+        let snapshot = null;
+        try {
+          const raw = localStorage.getItem(APP_STATE_STORAGE_KEY);
+          if (raw) snapshot = JSON.parse(raw);
+        } catch (error) { console.warn('Leitura do estado indisponível', error); }
+        if (!snapshot || snapshot.schema !== APP_STATE_SCHEMA_VERSION || !snapshot.selections) return false;
+        for (const component of COMPONENTS) {
+          const selectedValue = snapshot.selections[component.key];
+          if (selectedValue === null || selectedValue === undefined) continue;
+          if (!component.options.some((option) => String(option.value) === String(selectedValue))) continue;
+          const matchingRadio = Array.from(DOM.form.querySelectorAll(`input[name="${component.key}"]`))
+            .find((radio) => radio.value === String(selectedValue));
+          if (matchingRadio) matchingRadio.checked = true;
+        }
+        if (LEGAL_DETAILS && typeof snapshot.legalOpen === 'boolean') LEGAL_DETAILS.open = snapshot.legalOpen;
+        if (Number.isFinite(snapshot.scrollY) && snapshot.scrollY >= 0) {
+          requestAnimationFrame(() => window.scrollTo(0, snapshot.scrollY));
+        }
+        return true;
+      }
+
       // bootstrap
       buildInterface();
       DOM.resultSection.setAttribute('tabindex', '-1');
@@ -850,6 +887,19 @@
       DOM.form.addEventListener('change', handleSelectionChange);
       DOM.form.addEventListener('click', handleRadioClick);
       DOM.form.addEventListener('reset', handleReset);
+      DOM.form.addEventListener('change', persistInputSnapshot);
+      DOM.form.addEventListener('reset', () => {
+        // Reset events run before native controls are reset: avoid storing stale selections.
+        try { localStorage.removeItem(APP_STATE_STORAGE_KEY); } catch (_error) { /* ignore */ }
+      });
+      LEGAL_DETAILS?.addEventListener('toggle', persistInputSnapshot);
+      window.addEventListener('pagehide', persistInputSnapshot);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) persistInputSnapshot(); });
+      let scrollSaveTimer = null;
+      window.addEventListener('scroll', () => {
+        clearTimeout(scrollSaveTimer);
+        scrollSaveTimer = setTimeout(persistInputSnapshot, 250);
+      }, { passive: true });
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && event.target && event.target.form === DOM.form && event.target.type !== 'reset') {
           event.preventDefault();
@@ -863,6 +913,7 @@
         runSelfTests
       });
 
+      restoreInputSnapshot();
       render();
     })();
   </script>
